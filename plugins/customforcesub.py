@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4, OWNER_ID
 
-# Dictionary to store ForceSub channel IDs
+# Dictionary to store ForceSub channel IDs (mutable for dynamic updates)
 force_sub_channels = {
     "FORCE_SUB_CHANNEL_1": FORCE_SUB_CHANNEL_1,
     "FORCE_SUB_CHANNEL_2": FORCE_SUB_CHANNEL_2,
@@ -34,9 +34,10 @@ async def button_callback(client, callback_query):
 async def handle_text(client, message):
     selected_var = message.from_user_data.get("selected_var")
     if selected_var:
+        # Update the selected ForceSub variable with the new channel ID
         force_sub_channels[selected_var] = message.text
         await message.reply_text(f"{selected_var} has been updated to: {message.text}")
-        message.from_user_data["selected_var"] = None
+        message.from_user_data["selected_var"] = None  # Clear selected variable
     else:
         await message.reply_text("Please use /setforcesub to select a channel first.")
 
@@ -50,6 +51,6 @@ async def checkforcesub(client, message):
             invite_link = await client.export_chat_invite_link(channel_id)
             response += f"{name}: {channel_id} ✅\n"
         except Exception:
-            response += f"{name}: {channel_id} ❌\n"
+            response += f"{name}: {channel_id} ❌ (Bot lacks permissions or invalid channel)\n"
 
     await message.reply_text(response)
