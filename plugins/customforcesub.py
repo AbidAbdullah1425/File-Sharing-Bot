@@ -1,6 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4, OWNER
+from config import FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4, OWNER_ID
 
 # Dictionary to store ForceSub channel IDs
 force_sub_channels = {
@@ -11,7 +11,7 @@ force_sub_channels = {
 }
 
 # Command to display buttons for each ForceSub variable
-@Client.on_message(filters.command("setforcesub") & filters.user(OWNER))
+@Client.on_message(filters.command("setforcesub") & filters.user(OWNER_ID))
 async def setforcesub(client, message):
     keyboard = [
         [InlineKeyboardButton("FORCE_SUB_CHANNEL_1", callback_data="FORCE_SUB_CHANNEL_1")],
@@ -30,7 +30,7 @@ async def button_callback(client, callback_query):
     await callback_query.message.edit_text(f"Please send a new channel ID for {selected_var}:")
 
 # Handle text input and update the ForceSub variable
-@Client.on_message(filters.text & filters.user(OWNER))
+@Client.on_message(filters.text & filters.user(OWNER_ID))
 async def handle_text(client, message):
     selected_var = message.from_user_data.get("selected_var")
     if selected_var:
@@ -41,7 +41,7 @@ async def handle_text(client, message):
         await message.reply_text("Please use /setforcesub to select a channel first.")
 
 # Command to check current ForceSub channels and bot permissions
-@Client.on_message(filters.command("checkforcesub") & filters.user(OWNER))
+@Client.on_message(filters.command("checkforcesub") & filters.user(OWNER_ID))
 async def checkforcesub(client, message):
     response = "Current ForceSub channels and bot access:\n"
     for name, channel_id in force_sub_channels.items():
