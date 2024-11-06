@@ -1,61 +1,70 @@
+import os
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4, OWNER_ID
+from pyrogram.types import Message
+from config import OWNER_ID  # Ensure OWNER_ID is imported from your config.py
 
-# Dictionary to store ForceSub channel IDs
-force_sub_channels = {
-    "FORCE_SUB_CHANNEL_1": FORCE_SUB_CHANNEL_1,
-    "FORCE_SUB_CHANNEL_2": FORCE_SUB_CHANNEL_2,
-    "FORCE_SUB_CHANNEL_3": FORCE_SUB_CHANNEL_3,
-    "FORCE_SUB_CHANNEL_4": FORCE_SUB_CHANNEL_4,
-}
+# Function to check if the bot is an admin in the given private channel using its channel ID
+async def check_if_bot_is_admin(client: Client, channel_id: int):
+    try:
+        # Check if the bot is an admin in the channel by channel ID
+        chat_member = await client.get_chat_member(channel_id, "me")
+        if chat_member.status in ['administrator', 'creator']:
+            return True, f"✅ Bot is an admin in the channel with ID {channel_id}."
+        else:
+            return False, f"❌ Bot is NOT an admin in the channel with ID {channel_id}."
+    except Exception as e:
+        return False, f"❌ Error checking admin status: {e}"
 
-# Temporary storage for user data
-user_data = {}
+# Command to set force subscription variables
+@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub'))
+async def set_forcesub(client: Client, message: Message):
+    # Step 1: Ask the owner for the private channel ID (instead of the URL)
+    await message.reply("Please provide the private channel ID (numeric ID):")
+    
+    # Step 2: Wait for owner's response (the private channel ID)
+    new_value = await client.ask(
+        message.from_user.id,
+        text="Please provide the private channel ID:",
+        filters=filters.text,
+        timeout=60
+    )
 
-# Command to display buttons for each ForceSub variable
-@Client.on_message(filters.command("setforcesub") & filters.user(OWNER_ID))
-async def setforcesub(client, message):
-    keyboard = [
-        [InlineKeyboardButton("FORCE_SUB_CHANNEL_1", callback_data="FORCE_SUB_CHANNEL_1")],
-        [InlineKeyboardButton("FORCE_SUB_CHANNEL_2", callback_data="FORCE_SUB_CHANNEL_2")],
-        [InlineKeyboardButton("FORCE_SUB_CHANNEL_3", callback_data="FORCE_SUB_CHANNEL_3")],
-        [InlineKeyboardButton("FORCE_SUB_CHANNEL_4", callback_data="FORCE_SUB_CHANNEL_4")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await message.reply_text("Select a ForceSub channel to change:", reply_markup=reply_markup)
+    try:
+        # Convert the provided input to an integer (the channel ID)
+        channel_id = int(new_value.text)
+    except ValueError:
+        await message.reply("❌ Invalid input. Please provide a valid numeric channel ID.")
+        return
 
-# Handle button press and prompt for new value
-@Client.on_callback_query()
-async def button_callback(client, callback_query):
-    selected_var = callback_query.data
-    user_data[callback_query.from_user.id] = {"selected_var": selected_var}
-    await callback_query.message.edit_text(f"Please send a new channel ID for {selected_var}:")
-
-# Handle text input and update the ForceSub variable
-@Client.on_message(filters.text & filters.user(OWNER_ID))
-async def handle_text(client, message):
-    user_id = message.from_user.id
-    if user_id in user_data and "selected_var" in user_data[user_id]:
-        selected_var = user_data[user_id]["selected_var"]
-        # Update the selected ForceSub variable with the new channel ID
-        force_sub_channels[selected_var] = message.text
-        await message.reply_text(f"{selected_var} has been updated to: {message.text}")
-        del user_data[user_id]  # Clear the stored variable
-    else:
-        await message.reply_text("Please use /setforcesub to select a channel first.")
-
-# Command to check current ForceSub channels and bot permissions
-@Client.on_message(filters.command("checkforcesub") & filters.user(OWNER_ID))
-async def checkforcesub(client, message):
-    response = "Current ForceSub channels and bot access:\n"
-    for name, channel_id in force_sub_channels.items():
-        try:
-            # Check if the bot can export an invite link
-            chat = await client.get_chat(channel_id)
-            await chat.export_invite_link()
-            response += f"{name}: {channel_id} ✅\n"
-        except Exception as e:
-            response += f"{name}: {channel_id} ❌ (Error: {e})\n"
-
-    await message.reply_text(response)
+    # Step 3: Check if the bot is an admin in the provided channel ID
+    is_admin, admin_status_message = await check_if_bot_is_admin(client, channel_id)
+    
+    # Step 4: If the bot is not an admin, inform the owner and stop
+    if not is_admin:
+        await message.reply(admin_status_message)
+        return
+    
+    # Step 5: If the bot is an admin, allow the owner to select which `FORCE_SUB_CHANNEL` to modify
+    await message.reply(admin_status_message + "\n\nPlease choose which `FORCE_SUB_CHANNEL` to modify:\n1. FORCE_SUB_CHANNEL_1\n2. FORCE_SUB_CHANNEL_2\n3. FORCE_SUB_CHANNEL_3\n4. FORCE_SUB_CHANNEL_4")
+    
+    # Step 6: Wait for owner's selection (1, 2, 3, or 4)
+    response = await client.ask(
+        message.from_user.id,
+        text="Please reply with the number of the channel (1, 2, 3, or 4):",
+        filters=filters.text,
+        timeout=60
+    )
+    
+    # Step 7: Validate the selection
+    if response.text not in ['1', '2', '3', '4']:
+        await response.reply("❌ Invalid selection. Please choose between 1, 2, 3, or 4.")
+        return
+    
+    # Step 8: Define the variable name based on the selected option (FORCE_SUB_CHANNEL_1 to FORCE_SUB_CHANNEL_4)
+    variable_name = f"FORCE_SUB_CHANNEL_{response.text}"
+    
+    # Step 9: Update the value of the selected FORCE_SUB_CHANNEL_* in memory
+    os.environ[variable_name] = str(channel_id)
+    
+    # Step 10: Confirm the update
+    await message.reply(f"✅ Successfully updated {variable_name} to: {channel_id}")
