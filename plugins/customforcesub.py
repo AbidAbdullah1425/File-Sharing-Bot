@@ -1,8 +1,8 @@
 import os
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import Message
-from bot import Bot  # Import the Bot class from bot.py
-from config import OWNER_ID, FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4
+from bot import Bot  # Import Bot class
+from config import OWNER_ID, ADMINS
 
 # Function to check if the bot has permission to export an invite link
 async def can_export_invite_link(client, channel_id):
@@ -20,7 +20,7 @@ async def can_export_invite_link(client, channel_id):
 
 
 # Handle the /setforcesub1 command
-@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub1'))
+@Bot.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub1'))
 async def set_forcesub1(client: Bot, message: Message):
     # Parse the channel ID from the command
     try:
@@ -47,7 +47,7 @@ async def set_forcesub1(client: Bot, message: Message):
 
 
 # Handle the /setforcesub2 command
-@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub2'))
+@Bot.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub2'))
 async def set_forcesub2(client: Bot, message: Message):
     # Parse the channel ID from the command
     try:
@@ -74,7 +74,7 @@ async def set_forcesub2(client: Bot, message: Message):
 
 
 # Handle the /setforcesub3 command
-@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub3'))
+@Bot.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub3'))
 async def set_forcesub3(client: Bot, message: Message):
     # Parse the channel ID from the command
     try:
@@ -101,7 +101,7 @@ async def set_forcesub3(client: Bot, message: Message):
 
 
 # Handle the /setforcesub4 command
-@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub4'))
+@Bot.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub4'))
 async def set_forcesub4(client: Bot, message: Message):
     # Parse the channel ID from the command
     try:
