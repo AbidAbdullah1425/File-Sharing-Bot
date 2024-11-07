@@ -1,7 +1,7 @@
 from pyrogram import Client, filters
 from config import OWNER_ID, FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4
 
-@Bot.on_message(filters.private & filters.user(OWNER_ID) & filters.command('checkforcesub'))
+@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('checkforcesub'))
 async def checkforcesub(client: Client, message: Message):
     # Prepare the message with the values of the force sub-channel variables
     force_sub_channels = (
