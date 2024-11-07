@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.types import Message  # Add this import to fix the error
 from config import OWNER_ID, FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4
 
 @Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('checkforcesub'))
