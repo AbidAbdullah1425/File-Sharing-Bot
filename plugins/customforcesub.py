@@ -1,70 +1,107 @@
 import os
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from config import OWNER_ID  # Ensure OWNER_ID is imported from your config.py
+from config import OWNER_ID  # Make sure OWNER_ID is correctly imported from config
 
-# Function to check if the bot is an admin in the given private channel using its channel ID
-async def check_if_bot_is_admin(client: Client, channel_id: int):
+# Function to check if the bot has permission to export invite link in both groups and channels
+async def check_bot_permissions_for_invite_link(client: Client, channel_id: int):
     try:
-        # Check if the bot is an admin in the channel by channel ID
-        chat_member = await client.get_chat_member(channel_id, "me")
-        if chat_member.status in ['administrator', 'creator']:
-            return True, f"✅ Bot is an admin in the channel with ID {channel_id}."
+        # Get chat info (this will work for both groups and channels)
+        chat = await client.get_chat(channel_id)
+        
+        # If it's a private group/channel, check bot's admin rights
+        if chat.type in ['supergroup', 'channel']:
+            chat_member = await client.get_chat_member(channel_id, "me")
+            
+            if chat_member.status in ['administrator', 'creator']:
+                if chat_member.can_invite_to_group:
+                    return True, f"✅ The bot has permission to generate an invite link in the channel/group with ID {channel_id}."
+                else:
+                    return False, f"❌ The bot does not have permission to generate an invite link in the channel/group with ID {channel_id}."
+            else:
+                return False, f"❌ The bot is not an admin in the channel/group with ID {channel_id}."
         else:
-            return False, f"❌ Bot is NOT an admin in the channel with ID {channel_id}."
+            return False, "❌ The specified ID does not belong to a valid group or channel."
+    
     except Exception as e:
-        return False, f"❌ Error checking admin status: {e}"
+        return False, f"❌ Error checking permissions for the channel/group with ID {channel_id}: {e}"
 
-# Command to set force subscription variables
-@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub'))
-async def set_forcesub(client: Client, message: Message):
-    # Step 1: Ask the owner for the private channel ID (instead of the URL)
-    await message.reply("Please provide the private channel ID (numeric ID):")
-    
-    # Step 2: Wait for owner's response (the private channel ID)
-    new_value = await client.ask(
-        message.from_user.id,
-        text="Please provide the private channel ID:",
-        filters=filters.text,
-        timeout=60
-    )
-
+# Command to set FORCE_SUB_CHANNEL_1
+@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub1'))
+async def set_forcesub1(client: Client, message: Message):
     try:
-        # Convert the provided input to an integer (the channel ID)
-        channel_id = int(new_value.text)
-    except ValueError:
-        await message.reply("❌ Invalid input. Please provide a valid numeric channel ID.")
+        new_channel_id = int(message.text.split()[1])  # Get the channel ID from the command input
+    except (IndexError, ValueError):
+        await message.reply("❌ Please provide a valid numeric channel ID.")
         return
 
-    # Step 3: Check if the bot is an admin in the provided channel ID
-    is_admin, admin_status_message = await check_if_bot_is_admin(client, channel_id)
-    
-    # Step 4: If the bot is not an admin, inform the owner and stop
-    if not is_admin:
-        await message.reply(admin_status_message)
+    # Check if the bot has permission to export an invite link in the provided channel
+    is_allowed, status_message = await check_bot_permissions_for_invite_link(client, new_channel_id)
+
+    if not is_allowed:
+        await message.reply(status_message)
         return
-    
-    # Step 5: If the bot is an admin, allow the owner to select which `FORCE_SUB_CHANNEL` to modify
-    await message.reply(admin_status_message + "\n\nPlease choose which `FORCE_SUB_CHANNEL` to modify:\n1. FORCE_SUB_CHANNEL_1\n2. FORCE_SUB_CHANNEL_2\n3. FORCE_SUB_CHANNEL_3\n4. FORCE_SUB_CHANNEL_4")
-    
-    # Step 6: Wait for owner's selection (1, 2, 3, or 4)
-    response = await client.ask(
-        message.from_user.id,
-        text="Please reply with the number of the channel (1, 2, 3, or 4):",
-        filters=filters.text,
-        timeout=60
-    )
-    
-    # Step 7: Validate the selection
-    if response.text not in ['1', '2', '3', '4']:
-        await response.reply("❌ Invalid selection. Please choose between 1, 2, 3, or 4.")
+
+    # If permission is granted, update the FORCE_SUB_CHANNEL_1 variable
+    os.environ['FORCE_SUB_CHANNEL_1'] = str(new_channel_id)
+    await message.reply(f"✅ Successfully updated FORCE_SUB_CHANNEL_1 to: {new_channel_id}")
+
+# Command to set FORCE_SUB_CHANNEL_2
+@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub2'))
+async def set_forcesub2(client: Client, message: Message):
+    try:
+        new_channel_id = int(message.text.split()[1])  # Get the channel ID from the command input
+    except (IndexError, ValueError):
+        await message.reply("❌ Please provide a valid numeric channel ID.")
         return
-    
-    # Step 8: Define the variable name based on the selected option (FORCE_SUB_CHANNEL_1 to FORCE_SUB_CHANNEL_4)
-    variable_name = f"FORCE_SUB_CHANNEL_{response.text}"
-    
-    # Step 9: Update the value of the selected FORCE_SUB_CHANNEL_* in memory
-    os.environ[variable_name] = str(channel_id)
-    
-    # Step 10: Confirm the update
-    await message.reply(f"✅ Successfully updated {variable_name} to: {channel_id}")
+
+    # Check if the bot has permission to export an invite link in the provided channel
+    is_allowed, status_message = await check_bot_permissions_for_invite_link(client, new_channel_id)
+
+    if not is_allowed:
+        await message.reply(status_message)
+        return
+
+    # If permission is granted, update the FORCE_SUB_CHANNEL_2 variable
+    os.environ['FORCE_SUB_CHANNEL_2'] = str(new_channel_id)
+    await message.reply(f"✅ Successfully updated FORCE_SUB_CHANNEL_2 to: {new_channel_id}")
+
+# Command to set FORCE_SUB_CHANNEL_3
+@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub3'))
+async def set_forcesub3(client: Client, message: Message):
+    try:
+        new_channel_id = int(message.text.split()[1])  # Get the channel ID from the command input
+    except (IndexError, ValueError):
+        await message.reply("❌ Please provide a valid numeric channel ID.")
+        return
+
+    # Check if the bot has permission to export an invite link in the provided channel
+    is_allowed, status_message = await check_bot_permissions_for_invite_link(client, new_channel_id)
+
+    if not is_allowed:
+        await message.reply(status_message)
+        return
+
+    # If permission is granted, update the FORCE_SUB_CHANNEL_3 variable
+    os.environ['FORCE_SUB_CHANNEL_3'] = str(new_channel_id)
+    await message.reply(f"✅ Successfully updated FORCE_SUB_CHANNEL_3 to: {new_channel_id}")
+
+# Command to set FORCE_SUB_CHANNEL_4
+@Client.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub4'))
+async def set_forcesub4(client: Client, message: Message):
+    try:
+        new_channel_id = int(message.text.split()[1])  # Get the channel ID from the command input
+    except (IndexError, ValueError):
+        await message.reply("❌ Please provide a valid numeric channel ID.")
+        return
+
+    # Check if the bot has permission to export an invite link in the provided channel
+    is_allowed, status_message = await check_bot_permissions_for_invite_link(client, new_channel_id)
+
+    if not is_allowed:
+        await message.reply(status_message)
+        return
+
+    # If permission is granted, update the FORCE_SUB_CHANNEL_4 variable
+    os.environ['FORCE_SUB_CHANNEL_4'] = str(new_channel_id)
+    await message.reply(f"✅ Successfully updated FORCE_SUB_CHANNEL_4 to: {new_channel_id}")
