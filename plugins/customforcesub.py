@@ -1,7 +1,7 @@
 from bot import Bot  # Import Bot from bot.py
 from pyrogram import filters
 from pyrogram.types import Message
-from config import FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4
+from config import FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4, OWNER_ID
 
 @Bot.on_message(filters.private & filters.user(OWNER_ID) & filters.command('setforcesub1'))
 async def set_forcesub1(client: Bot, message: Message):
