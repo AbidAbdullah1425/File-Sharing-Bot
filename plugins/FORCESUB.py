@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from database.database import set_force_sub_channels, get_force_sub_channels
 from bot import Bot
 
-@Bot.on_message(filters.command("SetFSub") & filters.user(ADMINS))
+@Bot.on_message(filters.command("setfsub") & filters.user(ADMINS))
 async def set_force_sub(client, message):
     try:
         # Extract channel IDs from the command
