@@ -14,7 +14,7 @@ async def set_force_sub(client, message):
     except Exception as e:
         print(f"Error: {str(e)}")  # Log the error silently
 
-@app.on_message(filters.command("get_force_sub") & filters.user(ADMINS))
+@Bot.on_message(filters.command("getfsub") & filters.user(ADMINS))
 async def get_force_sub(client, message):
     try:
         # Fetch current force subscription channels from MongoDB
