@@ -161,16 +161,12 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 
 #=====================================================================================##
 
-def get_valid_invitelink():
-    # Return f_invitelink if set, otherwise return invitelink
-    return f_invitelink if f_invitelink else invitelink
-
 
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
     buttons = [
         [
-            InlineKeyboardButton(text="Join Channel", url=get_valid_invitelink()),
+            InlineKeyboardButton(text="Join Channel", url=f_invitelink if 'f_invitelink' in globals() else client.invitelink),
             InlineKeyboardButton(text="Join Channel", url=client.invitelink2),
         ],
         [
