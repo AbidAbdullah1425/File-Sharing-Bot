@@ -38,12 +38,11 @@ async def set_force_sub(client, message):
 @Bot.on_message(filters.command("getfsub") & filters.user(ADMINS))
 async def get_force_sub(client, message):
     try:
-        # Fetch current force subscription channels from MongoDB
-        channels = get_force_sub_channel()
-        if channels:
-            channel_list = "\n".join(channels)
-            await message.reply_text(f"Current Force Sub Channels:\n{channel_list}")
+        # Fetch the current force subscription channel from MongoDB
+        channel_id = get_force_sub_channel()
+        if channel_id:
+            await message.reply_text(f"Current Force Sub Channel ID: {channel_id}")
         else:
-            await message.reply_text("No Force Sub Channels have been set.")
+            await message.reply_text("No Force Sub Channel has been set.")
     except Exception as e:
         print(f"Error: {str(e)}")  # Log the error silently
