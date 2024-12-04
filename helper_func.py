@@ -5,12 +5,12 @@ from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant
 from pyrogram.errors import FloodWait
-from database import get_force_sub_channels  # Import the MongoDB function
+from database import get_force_sub_channel  # Import the MongoDB function
 from config import FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4, ADMINS, AUTO_DELETE_TIME, AUTO_DEL_SUCCESS_MSG
 
 async def is_subscribed(filter, client, update):
     # Check MongoDB for dynamic force subscription channels
-    force_sub_channels = get_force_sub_channels()
+    force_sub_channels = get_force_sub_channel()
 
     # If no dynamic channels exist, fallback to config.py
     if not force_sub_channels:
