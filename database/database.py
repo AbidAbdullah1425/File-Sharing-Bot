@@ -29,11 +29,11 @@ async def del_user(user_id: int):
     user_data.delete_one({'_id': user_id})
     return
 
-# Force subscription management functions
-def get_force_sub_channels():
-    """Fetch dynamic force subscription channels."""
-    result = fsub_collection.find_one({"key": "force_sub_channels"})
-    return result["channels"] if result else []
+def get_force_sub_channel():
+    """Fetch the dynamic force subscription channel."""
+    result = fsub_collection.find_one({"key": "FORCE_SUB_CHANNEL_1"})
+    return result["FSUB_ID"] if result else None
+
 
 def set_force_sub_channel(channel_id):
     """Update dynamic force subscription channel with a single ID."""
