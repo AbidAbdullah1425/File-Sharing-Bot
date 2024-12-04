@@ -170,7 +170,7 @@ def get_valid_invitelink():
 async def not_joined(client: Client, message: Message):
     buttons = [
         [
-            InlineKeyboardButton(text="Join Channel", url=url=get_valid_invitelink()),
+            InlineKeyboardButton(text="Join Channel", url=get_valid_invitelink()),
             InlineKeyboardButton(text="Join Channel", url=client.invitelink2),
         ],
         [
