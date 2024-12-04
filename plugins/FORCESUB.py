@@ -5,14 +5,19 @@ from bot import Bot
 @Bot.on_message(filters.command("setfsub") & filters.user(ADMINS))
 async def set_force_sub(client, message):
     try:
-        # Extract channel IDs from the command
-        channel_ids = [cid for cid in message.text.split()[1:] if cid.startswith("-100")]
-        if channel_ids:
-            # Update MongoDB with new channel IDs
-            set_force_sub_channels(channel_ids)
-            await message.reply_text("Force subscription channels updated successfully!")
+        # Extract channel ID from the command
+        args = message.text.split()
+        if len(args) != 2 or not args[1].startswith("-100"):
+            await message.reply_text("Please provide exactly one valid channel ID in the format: `/setfsub -100XXXXXXXXX`")
+            return
+
+        channel_id = args[1]
+        # Update MongoDB with the new channel ID
+        set_force_sub_channels([channel_id])  # Function assumes a list of IDs
+        await message.reply_text(f"Force subscription channel set to {channel_id} successfully!")
     except Exception as e:
         print(f"Error: {str(e)}")  # Log the error silently
+
 
 @Bot.on_message(filters.command("getfsub") & filters.user(ADMINS))
 async def get_force_sub(client, message):
