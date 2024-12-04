@@ -38,7 +38,7 @@ def get_force_sub_channels():
 def set_force_sub_channel(channel_id):
     """Update dynamic force subscription channel with a single ID."""
     fsub_collection.update_one(
-        {"key": "FORCE_SUB_CHANNEL_ID"},  # Use a key for single channel ID
-        {"$set": {"channel": channel_id}},  # Store a single channel ID
+        {"key": "FORCE_SUB_CHANNEL_1"},  # Use a key for single channel ID
+        {"$set": {"FSUB_ID": channel_id}},  # Store a single channel ID
         upsert=True
     )
