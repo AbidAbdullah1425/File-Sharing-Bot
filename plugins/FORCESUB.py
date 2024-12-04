@@ -2,6 +2,8 @@ from pyrogram import Client, filters
 from database.database import set_force_sub_channels, get_force_sub_channels
 from bot import Bot
 
+f_invitelink = None
+
 @Bot.on_message(filters.command("setfsub") & filters.user(ADMINS))
 async def set_force_sub(client, message):
     try:
