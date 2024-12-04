@@ -13,7 +13,7 @@ async def set_force_sub(client, message):
 
         channel_id = args[1]
         # Update MongoDB with the new channel ID
-        set_force_sub_channels([channel_id])  # Function assumes a list of IDs
+        set_force_sub_channel(channel_id)
         await message.reply_text(f"Force subscription channel set to {channel_id} successfully!")
     except Exception as e:
         print(f"Error: {str(e)}")  # Log the error silently
