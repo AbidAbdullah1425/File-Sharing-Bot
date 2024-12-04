@@ -1,5 +1,5 @@
 from pyrogram import Client, filters
-from database.database import set_force_sub_channels, get_force_sub_channels
+from database.database import set_force_sub_channel, get_force_sub_channel
 from bot import Bot
 
 f_invitelink = None
@@ -38,7 +38,7 @@ async def set_force_sub(client, message):
 async def get_force_sub(client, message):
     try:
         # Fetch current force subscription channels from MongoDB
-        channels = get_force_sub_channels()
+        channels = get_force_sub_channel()
         if channels:
             channel_list = "\n".join(channels)
             await message.reply_text(f"Current Force Sub Channels:\n{channel_list}")
