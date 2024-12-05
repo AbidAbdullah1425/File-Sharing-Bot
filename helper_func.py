@@ -9,45 +9,48 @@ from database.database import get_force_sub_channel  # Import the MongoDB functi
 from config import FORCE_SUB_CHANNEL_1, FORCE_SUB_CHANNEL_2, FORCE_SUB_CHANNEL_3, FORCE_SUB_CHANNEL_4, ADMINS, AUTO_DELETE_TIME, AUTO_DEL_SUCCESS_MSG
 
 async def is_subscribed(filter, client, update):
-    # Check MongoDB for dynamic force subscription channels
-    force_sub_channels = get_force_sub_channel()
+    # Retrieve the force subscription channel from MongoDB
+    try:
+        force_sub_channel = get_force_sub_channel("FORCE_SUB_CHANNEL_1")
+    except Exception as e:
+        print(f"Error retrieving channel from MongoDB: {e}")
+        force_sub_channel = None
 
-    # If no dynamic channels exist, fallback to config.py
-    if not force_sub_channels:
-        force_sub_channels = [
-            FORCE_SUB_CHANNEL_1,
-            FORCE_SUB_CHANNEL_2,
-            FORCE_SUB_CHANNEL_3,
-            FORCE_SUB_CHANNEL_4,
-        ]
+    # Fallback to config.py if no channel is found in MongoDB
+    if not force_sub_channel:
+        force_sub_channel = FORCE_SUB_CHANNEL_1
 
-    # Remove any None or empty values from the list
-    force_sub_channels = [channel for channel in force_sub_channels if channel]
-
-    # If no channels (dynamic or inbuilt), skip the check
-    if not force_sub_channels:
+    # Skip the check if no valid channel ID is found
+    if not force_sub_channel:
         return True
 
     user_id = update.from_user.id
 
-    # Skip check for admins
+    # Bypass check for admins
     if user_id in ADMINS:
         return True
 
     # Allowed member statuses
-    member_status = ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER
+    allowed_statuses = {ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER}
 
-    # Check if the user is a member of all required channels
-    for channel_id in force_sub_channels:
-        try:
-            member = await client.get_chat_member(chat_id=channel_id, user_id=user_id)
-        except UserNotParticipant:
+    # Check if the user is subscribed to the channel
+    try:
+        member = await client.get_chat_member(chat_id=force_sub_channel, user_id=user_id)
+        if member.status not in allowed_statuses:
             return False
+    except UserNotParticipant:
+        return False
+    except FloodWait as e:
+        print(f"FloodWait error: Waiting for {e.value} seconds")
+        await asyncio.sleep(e.value)
+        return False
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return False
 
-        if member.status not in member_status:
-            return False
-
+    # If the user is subscribed, return True
     return True
+    
 
 async def encode(string):
     string_bytes = string.encode("ascii")
